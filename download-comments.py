@@ -22,7 +22,7 @@ class Tree(object):
 def commentTree(jsonNode):
    keys = ['id', 'author', 'text', 'points', 'created_at']
    nodeData = dict((k, jsonNode[k]) for k in keys)
-   nodeData['text'].strip().replace(',', '').replace('"',"'")
+   nodeData['text'] = nodeData['text'].strip().replace('"',"'")
 
    node = Tree(nodeData)
    for child in jsonNode['children']:
@@ -83,4 +83,13 @@ def commentsForStory(objectId):
 
 
 if __name__ == "__main__":
-   commentsForStory(1)
+   import sys
+   storyDatabase = sys.argv[-1]
+
+   with open(storyDatabase, 'r') as infile:
+      stories = infile.readlines()
+
+   for story in stories:
+      storyId = int(stories[0])
+      commentsForStory(storyId)
+
