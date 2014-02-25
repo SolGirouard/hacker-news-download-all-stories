@@ -2,6 +2,7 @@ import urllib.request, urllib.error, urllib.parse
 import json
 import pytz
 import re
+import time
 import numpy
 import pandas as pd
 from pandas import DataFrame
@@ -22,7 +23,9 @@ class Tree(object):
 def commentTree(jsonNode):
    keys = ['id', 'author', 'text', 'points', 'created_at']
    nodeData = dict((k, jsonNode[k]) for k in keys)
-   nodeData['text'] = nodeData['text'].strip().replace('"',"'")
+
+   if nodeData['text'] is not None:
+      nodeData['text'] = nodeData['text'].strip().replace('"',"'")
 
    node = Tree(nodeData)
    for child in jsonNode['children']:
@@ -84,12 +87,21 @@ def commentsForStory(objectId):
 
 if __name__ == "__main__":
    import sys
+
+   if len(sys.argv) != 2:
+      print('Usage: python download-comments.py path/to/stories.csv')
+      sys.exit(-1)
+
    storyDatabase = sys.argv[-1]
 
    with open(storyDatabase, 'r') as infile:
-      stories = infile.readlines()
+      stories = [line.strip().split(',') for line in infile.readlines()[1:]]
 
-   for story in stories:
-      storyId = int(stories[0])
+   print('Processing...')
+   for i, story in enumerate(stories):
+      storyId = int(story[0])
+
+      print('\t%d\t%.2f%%' % (storyId, 100 * i / len(stories)))
       commentsForStory(storyId)
+      time.sleep(3.7)
 
