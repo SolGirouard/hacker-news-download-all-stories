@@ -1,6 +1,8 @@
-hacker-news-download-all-stories
+Hacker News Dataset Downloader
 ================================
 
-Download *ALL* the submissions from Hacker News using the official API.
+Rewriten from minimaxir/hacker-news-download-all-stories to fit my needs. These are:
 
-Requires Python 2.7 and pandas.
+ - compatibility with python 3
+ - be able to choose a date range to download stories from
+ - process the tree of comments given a story id
