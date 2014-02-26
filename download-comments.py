@@ -40,7 +40,6 @@ def nodeToRecord(node, storyId, parentId):
    return record
 
 
-
 def preorderTraversal(node, storyId, parentId):
    comments = [nodeToRecord(node, storyId, parentId)]
 
@@ -68,25 +67,32 @@ def preorderTraversalIgnoreRoot(commentTree):
 
 # return a tree of comments for the given story
 def commentsForStory(objectId):
-   url = 'https://hn.algolia.com/api/v1/items/%d' % (objectId)
+   try:
+      url = 'https://hn.algolia.com/api/v1/items/%d' % (objectId)
 
-   req = urllib.request.Request(url)
-   response = urllib.request.urlopen(req)
-   data = json.loads(response.read().decode("utf-8"))
+      req = urllib.request.Request(url)
+      response = urllib.request.urlopen(req)
+      data = json.loads(response.read().decode("utf-8"))
 
-   tree = commentTree(data)
-   commentRecords = preorderTraversalIgnoreRoot(tree)
+      tree = commentTree(data)
+      commentRecords = preorderTraversalIgnoreRoot(tree)
 
-   columns = ['id', 'author', 'text', 'points', 'created_at', 'parent_id', 'story_id']
-   df = DataFrame(columns = columns, index = numpy.arange(len(commentRecords)))
-   for index, comment in enumerate(commentRecords):
-      df.ix[index] = comment
+      if len(commentRecords) == 0:
+         return
 
-   df.to_csv("comments-by-story/comments-%d.csv" % objectId, encoding='utf-8', index=False)
+      columns = ['id', 'author', 'text', 'points', 'created_at', 'parent_id', 'story_id']
+      df = DataFrame(columns = columns, index = numpy.arange(len(commentRecords)))
+      for index, comment in enumerate(commentRecords):
+         df.ix[index] = comment
+
+      df.to_csv("comments-by-story/comments-%d.csv" % objectId, encoding='utf-8', index=False)
+   except Exception as e:
+      print(e)
 
 
 if __name__ == "__main__":
    import sys
+   import os.path
 
    if len(sys.argv) != 2:
       print('Usage: python download-comments.py path/to/stories.csv')
@@ -100,6 +106,11 @@ if __name__ == "__main__":
    print('Processing...')
    for i, story in enumerate(stories):
       storyId = int(story[0])
+      filename = 'comments-by-story/comments-%d.csv' % storyId
+
+      if os.path.isfile(filename):
+         print('skipping %d, file exists' % storyId)
+         continue
 
       print('\t%d\t%.2f%%' % (storyId, 100 * i / len(stories)))
       commentsForStory(storyId)
